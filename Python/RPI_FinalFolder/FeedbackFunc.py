@@ -6,7 +6,9 @@ import os
 from math import floor
 
 
-def readingsFunc():
+def readingsFunc(numloops=None):
+    if numloops:  # use this for tests
+        count = 0
 
     # define the indices for the brain waves
     bandAlpha = 2
@@ -183,8 +185,13 @@ def readingsFunc():
             stringToSend = "python3 ~/MyProjects/Beakerhead/rpi-rf/scripts/rpi-rf_send {0}".format(
                 int(ThetaState))
             print(stringToSend)
-            # os.system(stringToSend)
+            os.system(stringToSend)
             # print('Theta Relaxation: ', theta_metric)
+
+            if numloops:
+                count += 1
+                if count > numloops:
+                    break
 
     except KeyboardInterrupt:
         print('Closing!')

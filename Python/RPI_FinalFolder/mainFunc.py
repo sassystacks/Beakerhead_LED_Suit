@@ -2,7 +2,6 @@
 import RPi.GPIO as GPIO
 import time
 import os
-#from muselsl import list_muses
 from stream_fuckedWith import list_muses, stream
 import pygatt
 
@@ -44,8 +43,6 @@ muses = list_muses()
 # if a muse is found connect to it
 if muses:
     addrs = muses[0]['address']
-import pdb
-pdb.set_trace()
 
 # connect to muse and wait until the part of song to transmit
 stream(addrs, 10)

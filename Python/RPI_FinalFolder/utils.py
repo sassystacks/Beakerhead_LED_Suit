@@ -13,7 +13,7 @@ import sys
 from tempfile import gettempdir
 from subprocess import call
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import svm
 from scipy.signal import butter, lfilter, lfilter_zi
