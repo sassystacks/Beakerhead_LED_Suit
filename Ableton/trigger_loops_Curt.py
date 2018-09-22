@@ -18,6 +18,7 @@ while 1:
 
     if x:
         if int(float(x)) == 4 and not started_song:
+            sleep(2.3)
             started_song = 1
             print('Playing song!!')
         elif int(float(x)) == 4 and started_song:
