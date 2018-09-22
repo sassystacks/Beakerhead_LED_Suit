@@ -184,7 +184,7 @@ def readingsFunc(numloops=None):
 
             stringToSend = "python3 ~/MyProjects/Beakerhead/rpi-rf/scripts/rpi-rf_send {0}".format(
                 int(ThetaState))
-            print(stringToSend)
+            # print(stringToSend)
             os.system(stringToSend)
             # print('Theta Relaxation: ', theta_metric)
 

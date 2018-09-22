@@ -18,8 +18,8 @@ const int RF_PIN = 2;
 #endif
 
 #define PIN_LEDARRAY    6// pin to send data to LED
-#define PIN_LEDARRAY_LARGE_CIRCLE    5// pin to send data to small circle LED
-#define PIN_LEDARRAY_SMALL_CIRCLE    4// pin to send data to large circleLED
+//#define PIN_LEDARRAY_LARGE_CIRCLE    5// pin to send data to small circle LED
+//#define PIN_LEDARRAY_SMALL_CIRCLE    4// pin to send data to large circleLED
 
 //Change the brightness of the LEDs here according to how many you have
 #define BRIGHTNESS        50
@@ -188,7 +188,7 @@ void setup() {
   //  FastLED.addLeds<LED_TYPE,PIN_LEDARRAY_SMALL_CIRCLE,COLOR_ORDER>(leds_scircle, NUM_LEDS_SMALL_CIRCLE).setCorrection(TypicalLEDStrip);
 
   // set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(BRIGHTNESS/10);
 
 }
 
@@ -242,9 +242,9 @@ void loop() {
 
 
     }
-
-    Serial.print("brain state is: ");
-    Serial.println(loopVal);
+//
+//    Serial.print("brain state is: ");
+//    Serial.println(loopVal);
     mySwitch.resetAvailable(); // reset the receiver pin
 
   }
@@ -258,8 +258,9 @@ void loop() {
   else 
   {
     // Default state for the lights
-    fill_solid( leds, NUM_LEDS, CRGB(50, 0, 200));
-    Serial.println(0);
+    //fill_solid( leds, NUM_LEDS, CRGB(50, 0, 200));
+    runLights(9,5,4);
+    //Serial.println(0);
   }
 
 
@@ -274,7 +275,7 @@ void runLoops()
   //Run for loop for the next samples per bar
   for (int i = 0; i < SAMPLES_PER_BAR / 4; i++) {
     // First, clear the existing led values
-    FastLED.clear();
+    
     loopCount++;//add to the loop count
 
     //if the loop count excedes the array size
@@ -305,8 +306,7 @@ void runLoops()
       //          runLights_sCircle(fullArrayLow[loopCount]*1.3, fullArrayLow[loopCount]*1.3, fullArrayLow[loopCount]*1.3);
       //          runLights_lCircle(fullArrayLow[loopCount]*2, fullArrayLow[loopCount]*2, fullArrayLow[loopCount]*2);
     }
-    FastLED.show(); // show the current state of LED
-    delay(20); // delay 20 ms
+    
   }
 
 }
@@ -314,6 +314,7 @@ void runLoops()
 
 void runLights(int ArrayLow, int ArrayMid, int ArrayHigh)
 {
+  FastLED.clear();
   for (int i = 0; i < ArrayLow + 1; i++)
   {
     leds[i] = CRGB::Red;
@@ -329,7 +330,8 @@ void runLights(int ArrayLow, int ArrayMid, int ArrayHigh)
     leds[i] = CRGB::Blue;
 
   }
-
+FastLED.show(); // show the current state of LED
+    delay(20); // delay 20 ms
 
 }
 

@@ -12,25 +12,21 @@ GPIO.setmode(GPIO.BOARD)
 buttonPin = 16
 
 # initialize the button pin, use the internal resistor for a pull up/ pulldown resistor
-GPIO.setup(buttonPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(buttonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # initialize button state
-buttonState = False
+buttonState = True
 
 # test counter
 count = 0
 # wait for the button to be pressed
-while buttonState == False and count < 10:
+while buttonState == True:
 
     # Check the state of the button
     buttonState = GPIO.input(buttonPin)
 
-    print " Checked button"
 
-    # if the button is pressed break loop
-    if buttonState == True:
-        break
-    count = count + 1
+print("Starting main loop")
 
 
 # send start command from RPI

@@ -67,7 +67,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, PIN_LEDARRAY, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   // set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(BRIGHTNESS/10);
 
 }
 
@@ -79,7 +79,7 @@ int loopVal = 0; // this is the value that determines if there is a loop to play
 
 int t_loopVal = 0; // this value is checked against loopVal to see if the brain waves have changed state
 
-const int music_play = 0;
+const int music_play = 4;
 int receive_messages = 1;
 int play_music = 0;
 
@@ -88,14 +88,16 @@ void loop() {
   //Check if there is a signal on the wire
   if (mySwitch.available() && receive_messages)
   {
-
+   // set master brightness control
+  FastLED.setBrightness(BRIGHTNESS);
+  
     int receivedData = mySwitch.getReceivedValue(); // define loopVal as the value on the receiver pin
 
     if (receivedData == music_play) {
       play_music = 1;
 
-      Serial.print("Play music received");
-      Serial.println(loopVal);
+      //Serial.print("Play music received");
+      //Serial.println(loopVal);
       mySwitch.resetAvailable(); // reset the receiver pin
 
       receive_messages = 0;
@@ -104,6 +106,7 @@ void loop() {
 
   if (play_music)
   {
+    //Serial.println("Start Music");
     //open the file for the main track
     int ckf1 = openFile(file1, fname1);
     int ckf2 = openFile(file2, fname2);
@@ -113,9 +116,11 @@ void loop() {
 
       // read sd Card for a given number of
       int loopCount = 0;
+      //Serial.println("Running LIghts");
       while (file1.available() && file2.available() && file3.available())
       {
-
+        
+        //Serial.println("Fuck shit fucker motherfucker");
         int chk1 = csvReadUint16(&file2, &lightIntensityLow, CSV_DELIM) ;
         int chk2 = csvReadUint16(&file3, &lightIntensityMid, CSV_DELIM) ;
         int chk3 = csvReadUint16(&file1, &lightIntensityHigh, CSV_DELIM) ;
@@ -123,22 +128,23 @@ void loop() {
         if (chk1 ==  CSV_DELIM && chk2 ==  CSV_DELIM && chk3 ==  CSV_DELIM )
         {
 
-
+          
           //Set lights to intensities
-          runLights(lightIntensityLow * 2, lightIntensityMid * 2, lightIntensityHigh * 2);
+          runLights(lightIntensityLow* 2, lightIntensityMid*2, lightIntensityHigh*2);
 
-
+            
 
           //
-          //          Serial.print("low intensity is: ");
-          //          Serial.print(lightIntensityLow);
-          //          Serial.print("        ");
-          //          Serial.print("Mid intensity is: ");
-          //          Serial.print(lightIntensityMid);
-          //          Serial.print("        ");
-          //          Serial.print("High intensity is: ");
-          //          Serial.println(lightIntensityHigh);
-
+//                    Serial.print("low intensity is: ");
+//                    Serial.print(lightIntensityLow);
+//                    Serial.print("        ");
+//                    Serial.print("Mid intensity is: ");
+//                    Serial.print(lightIntensityMid);
+//                    Serial.print("        ");
+//                    Serial.print("High intensity is: ");
+//                    Serial.println(lightIntensityHigh);
+//                    Serial.flush();
+ 
         }
         loopCount ++;
         if (loopCount > 11050)
@@ -146,10 +152,10 @@ void loop() {
           break;
         }
       }
-      Serial.println("Ending track ...... ");
+      //Serial.println("Ending track ...... ");
       play_music = 0; // End track
 
-      Serial.println("Closing files ........");
+      //Serial.println("Closing files ........");
       file1.close();
       file2.close();
       file3.close();
@@ -160,7 +166,7 @@ void loop() {
   {
     // Default state for the lights
     runLights(9, 5, 4);
-    Serial.println("No data received yet");
+    //Serial.println("No data received yet");
 
 
   }
@@ -176,11 +182,11 @@ int openFile(File &file, const char *fname)
   file = SD.open(fname, FILE_READ);
   if (!file)
   {
-    Serial.println("open failed");
+    //Serial.println("open failed");
     Serial.println(fname);
     return 0;
   }
-  Serial.println("opened file successfully");
+  //Serial.println("opened file successfully");
   return 1;
 }
 // Function takes an open file and returns an integer that describes the ascii code of the
@@ -258,7 +264,7 @@ void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
   {
     leds[i] = CRGB::Red;
   }
-  for (int i = ArrayLow; i < ArrayMid + ArrayLow; i++)
+  for (int i = ArrayLow ; i < ArrayMid + ArrayLow; i++)
   {
     leds[i] = CRGB::Green;
   }
@@ -270,7 +276,7 @@ void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
   FastLED.show();
 
   //delay for 20ms to show the lights
-  delay(20);
+  delay(11);
 
 }
 

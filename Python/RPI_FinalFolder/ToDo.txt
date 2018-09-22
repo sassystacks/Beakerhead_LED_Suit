@@ -1,0 +1,9 @@
+mainFunc.py
+ - timing
+ - end song
+
+stream_fuckedWith.py
+ - timing
+
+FeedbackFunc.py
+ - lag
