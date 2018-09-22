@@ -71,9 +71,6 @@ void setup() {
 
 }
 
-char receivedStart[1]; // initialize the variable to assign the start portion
-int startTrack  = 4;
-
 uint16_t lightIntensityLow; //initialize light intensity
 uint16_t lightIntensityMid; //initialize light intensity
 uint16_t lightIntensityHigh; //initialize light intensity
@@ -82,24 +79,25 @@ int loopVal = 0; // this is the value that determines if there is a loop to play
 
 int t_loopVal = 0; // this value is checked against loopVal to see if the brain waves have changed state
 
-const int music_play = 4;
+const int music_play = 0;
 int receive_messages = 1;
 int play_music = 0;
-1
+
 void loop() {
 
   //Check if there is a signal on the wire
-  if (mySwitch.available() && receive_messages) {
+  if (mySwitch.available() && receive_messages)
+  {
 
     int receivedData = mySwitch.getReceivedValue(); // define loopVal as the value on the receiver pin
 
     if (receivedData == music_play) {
       play_music = 1;
-      
+
       Serial.print("Play music received");
       Serial.println(loopVal);
       mySwitch.resetAvailable(); // reset the receiver pin
-      
+
       receive_messages = 0;
     }
   }
@@ -124,45 +122,46 @@ void loop() {
 
         if (chk1 ==  CSV_DELIM && chk2 ==  CSV_DELIM && chk3 ==  CSV_DELIM )
         {
-          // First, clear the existing led values
-          FastLED.clear();
+
 
           //Set lights to intensities
           runLights(lightIntensityLow * 2, lightIntensityMid * 2, lightIntensityHigh * 2);
 
 
-          //Show light values
-          FastLED.show();
 
-          //                       //delay for 20ms to show the lights
-          delay(20);
           //
-          Serial.print("low intensity is: ");
-          Serial.print(lightIntensityLow);
-          Serial.print("        ");
-          Serial.print("Mid intensity is: ");
-          Serial.print(lightIntensityMid);
-          Serial.print("        ");
-          Serial.print("High intensity is: ");
-          Serial.println(lightIntensityHigh);
+          //          Serial.print("low intensity is: ");
+          //          Serial.print(lightIntensityLow);
+          //          Serial.print("        ");
+          //          Serial.print("Mid intensity is: ");
+          //          Serial.print(lightIntensityMid);
+          //          Serial.print("        ");
+          //          Serial.print("High intensity is: ");
+          //          Serial.println(lightIntensityHigh);
 
         }
         loopCount ++;
-        if (loopCount > 600)
+        if (loopCount > 11050)
         {
           break;
         }
       }
       Serial.println("Ending track ...... ");
-      startTrack = 0; // End track
+      play_music = 0; // End track
 
       Serial.println("Closing files ........");
       file1.close();
       file2.close();
       file3.close();
-
-
     }
+
+  }
+  else
+  {
+    // Default state for the lights
+    runLights(9, 5, 4);
+    Serial.println("No data received yet");
+
 
   }
 
@@ -253,6 +252,8 @@ int csvReadUint16(File* file, uint16_t* num, char delim)
 // Run the LED lights based on the intensity of the signal
 void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
 {
+  // First, clear the existing led values
+  FastLED.clear();
   for (int i = 0; i < ArrayLow ; i++)
   {
     leds[i] = CRGB::Red;
@@ -265,6 +266,11 @@ void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
   {
     leds[i] = CRGB::Blue;
   }
+  //Show light values
+  FastLED.show();
+
+  //delay for 20ms to show the lights
+  delay(20);
 
 }
 
