@@ -207,14 +207,8 @@ const int SAMPLES_PER_BAR = (4 * 60) / (72 * .02);
 //void runLights(int lightArrayLow[],int lightArrayMid[],int lightArrayHigh[])
 
 void loop() {
-  /*
-        Serial.print("The samples per bar is: ");
-          Serial.println(SAMPLES_PER_BAR);
-          Serial.print("The loop count is: ");
-          Serial.println(loopCount);
-          Serial.print("The modulus is: .................................................");
-          Serial.println(loopCount%SAMPLES_PER_BAR);
-  */
+
+  
 
   // Check if there is data on the Receiver
   if (mySwitch.available())
@@ -261,7 +255,9 @@ void loop() {
     runLoops(); // run loops
   }
 
-  else {
+  else 
+  {
+    // Default state for the lights
     fill_solid( leds, NUM_LEDS, CRGB(50, 0, 200));
     Serial.println(0);
   }
