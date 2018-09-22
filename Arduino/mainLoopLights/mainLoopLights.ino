@@ -83,6 +83,8 @@ const int music_play = 4;
 int receive_messages = 1;
 int play_music = 0;
 
+const int SAMPLING_RATE = 20;
+unsigned int start_time = 0;
 void loop() {
 
   //Check if there is a signal on the wire
@@ -95,7 +97,8 @@ void loop() {
 
     if (receivedData == music_play) {
       play_music = 1;
-
+      start_time = millis();
+      
       //Serial.print("Play music received");
       //Serial.println(loopVal);
       mySwitch.resetAvailable(); // reset the receiver pin
@@ -106,11 +109,14 @@ void loop() {
 
   if (play_music)
   {
+    
     //Serial.println("Start Music");
     //open the file for the main track
     int ckf1 = openFile(file1, fname1);
     int ckf2 = openFile(file2, fname2);
     int ckf3 = openFile(file3, fname3);
+    
+    unsigned int previous_time = start_time;
     if (ckf1 && ckf2 && ckf3)
     {
 
@@ -119,6 +125,7 @@ void loop() {
       //Serial.println("Running LIghts");
       while (file1.available() && file2.available() && file3.available())
       {
+        
         
         //Serial.println("Fuck shit fucker motherfucker");
         int chk1 = csvReadUint16(&file2, &lightIntensityLow, CSV_DELIM) ;
@@ -129,9 +136,22 @@ void loop() {
         {
 
           
-          //Set lights to intensities
+          
+          current_time = millis();
+          
+          while(current_time - previous_time <= SAMPLING_RATE)
+          {
+            current_time = millis();
+          }
+          
+          previous_time = millis();
+          
           runLights(lightIntensityLow* 2, lightIntensityMid*2, lightIntensityHigh*2);
+          
 
+          
+          //Set lights to intensities
+          
             
 
           //
@@ -146,6 +166,7 @@ void loop() {
 //                    Serial.flush();
  
         }
+        
         loopCount ++;
         if (loopCount > 11050)
         {
@@ -279,4 +300,3 @@ void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
   delay(11);
 
 }
-
