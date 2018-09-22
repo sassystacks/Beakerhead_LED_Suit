@@ -15,6 +15,9 @@ while 1:
         sleep(1)
         continue
         #print(x)
+    if int(float(x)) == 5:
+        started_song = 0
+        print('Song has resetted')
 
     if x:
         if int(float(x)) == 4 and not started_song:
@@ -31,7 +34,7 @@ while 1:
         else:
             print('Triggering loop number', int(x))
 
-        msg = mido.Message('note_on', note=59 + int(float(x )))
+        msg = mido.Message('note_on', note=59 + int(float(x)))
 	
 	
         #print('Sending MIDI message: ' + str(msg.note))
