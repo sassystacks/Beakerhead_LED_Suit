@@ -7,7 +7,7 @@ import serial
 started_song = 0
 while 1:
     try:
-        ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+        ser = serial.Serial('/dev/cu.usbmodem1421', 9600)
         bytesToRead = ser.inWaiting()
         x = ser.readline()
     except:
