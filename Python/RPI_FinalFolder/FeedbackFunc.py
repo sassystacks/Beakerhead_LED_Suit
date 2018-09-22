@@ -4,11 +4,10 @@ from pylsl import StreamInlet, resolve_byprop  # Module to receive EEG data
 import utils  # Our own utility functionsi
 import os
 from math import floor
+import time
 
 
-def readingsFunc(numloops=None):
-    if numloops:  # use this for tests
-        count = 0
+def readingsFunc(timeAtReceive=None):
 
     # define the indices for the brain waves
     bandAlpha = 2
@@ -76,7 +75,11 @@ def readingsFunc(numloops=None):
         loopCount = 0
         minMetricCount = 0
 
-        while True:
+        if time.time() - timeAtReceive < 93:
+            while time.time() - timeAtReceive < 93:
+                time.sleep(0.5)
+
+        while time.time() - timeAtReceive < 167:
 
             """ 3.1 ACQUIRE DATA """
             # Obtain EEG data from the LSL stream
@@ -188,10 +191,10 @@ def readingsFunc(numloops=None):
             os.system(stringToSend)
             # print('Theta Relaxation: ', theta_metric)
 
-            if numloops:
-                count += 1
-                if count > numloops:
-                    break
+            # if numloops:
+            #     count += 1
+            #     if count > numloops:
+            #         break
 
     except KeyboardInterrupt:
         print('Closing!')

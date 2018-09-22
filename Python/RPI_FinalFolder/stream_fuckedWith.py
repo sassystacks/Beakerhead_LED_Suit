@@ -55,7 +55,7 @@ def find_muse(name=None):
 
 
 # Begins an LSL stream containing EEG data from a Muse with a given address
-def stream(address, waitTimeTillSong, backend='gatt', interface=None, name=None):
+def stream(address, timeAtReceive, backend='gatt', interface=None, name=None):
 
     bluemuse = backend == 'bluemuse'
     if not bluemuse:
@@ -106,22 +106,18 @@ def stream(address, waitTimeTillSong, backend='gatt', interface=None, name=None)
         muse.start()
         print('Streaming...')
 
-        loopcount = 0
-
         while time() - muse.last_timestamp < AUTO_DISCONNECT_DELAY:
-            if loopcount == 2:
-                muse.stop()
-                muse.disconnect()
+
             try:
+                # Added this for sending the current time in the song
                 # This is the function that was built
-                readingsFunc(5)
-                sleep(1)
+                readingsFunc(timeAtReceive)
+                # sleep(1)
             except KeyboardInterrupt:
                 muse.stop()
                 muse.disconnect()
                 break
 
-            loopcount += 1
         print('Disconnected.')
 
 

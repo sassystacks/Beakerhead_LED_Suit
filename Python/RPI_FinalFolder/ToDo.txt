@@ -1,9 +1,21 @@
 mainFunc.py
  - timing
+    - [N] s after button press, send start message : done
+    - [N] 133 s after main track, triggered starts loops : done
+    - time to end loops
  - end song
 
 stream_fuckedWith.py
- - timing
+ - timing : done
 
 FeedbackFunc.py
  - lag
+
+Ableton
+ - Timing : done
+
+Timeline
+     - Full runthrough x 3 (30mins)
+
+
+6363*

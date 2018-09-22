@@ -1,0 +1,4 @@
+loopsToLight
+ - circle lights separated
+ - end loop lights at time
+ 
