@@ -37,8 +37,8 @@ const int RF_PIN = 2;
 #define NUM_LEDS_SMALL_CIRCLE          25
 
 CRGB leds[NUM_LEDS];
-//CRGB leds_lcircle[NUM_LEDS];
-//CRGB leds_scircle[NUM_LEDS];
+CRGB leds_lcircle[NUM_LEDS];
+CRGB leds_scircle[NUM_LEDS];
 
 // Create the arrays that describe the lights
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Low Waves ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,12 +181,11 @@ void setup() {
   // LED strip configuration
   FastLED.addLeds<LED_TYPE, PIN_LEDARRAY, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
-
-  // // LED small ciclre configuration
-  //  FastLED.addLeds<LED_TYPE,PIN_LEDARRAY_LARGE_CIRCLE,COLOR_ORDER>(leds_lcircle, NUM_LEDS_LARGE_CIRCLE).setCorrection(TypicalLEDStrip);
+  // LED small ciclre configuration
+  FastLED.addLeds<LED_TYPE, PIN_LEDARRAY_LARGE_CIRCLE, COLOR_ORDER>(leds_lcircle, NUM_LEDS_LARGE_CIRCLE).setCorrection(TypicalLEDStrip);
   //
-  //   // LED large circle configuration
-  //  FastLED.addLeds<LED_TYPE,PIN_LEDARRAY_SMALL_CIRCLE,COLOR_ORDER>(leds_scircle, NUM_LEDS_SMALL_CIRCLE).setCorrection(TypicalLEDStrip);
+  // LED large circle configuration
+  FastLED.addLeds<LED_TYPE, PIN_LEDARRAY_SMALL_CIRCLE, COLOR_ORDER>(leds_scircle, NUM_LEDS_SMALL_CIRCLE).setCorrection(TypicalLEDStrip);
 
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS / 10);
@@ -209,6 +208,8 @@ const int SAMPLES_PER_BAR = (4 * 60) / (72 * .02);
 
 uint8_t gHue = 0;
 
+unsigned long songStartTime; //set the current time global variable
+
 void loop() {
 
 
@@ -222,21 +223,27 @@ void loop() {
     }
     int receivedData = mySwitch.getReceivedValue(); // define loopVal as the value on the receiver pin
 
+    // After song starts beat the lights at 72 bpm
     if (receivedData == 4)
     {
+
+      delay(1000);
+
+      songStartTime = millis();
       unsigned long init_time = millis(); //Get the time right now
-      unsigned long currentime = millis();
-      while (currentime - init_time < 90000)
-      {        
-         currentime = millis();
-         bpm();
-         FastLED.show();
-         FastLED.delay(100);
-      } 
+
+      while (millis() - init_time < 90000)
+      {
+        bpm();
+        FastLED.show();
+        FastLED.delay(100);
+      }
+
     }
 
     if ((receivedData == loop1 || receivedData == loop2 || receivedData == loop3))
     {
+
 
       loopVal = receivedData;
 
@@ -256,14 +263,18 @@ void loop() {
         chkVal = 0;
       }
 
-
-
-
     }
     //
     //    Serial.print("brain state is: ");
     //    Serial.println(loopVal);
     mySwitch.resetAvailable(); // reset the receiver pin
+
+    // Don't play lights after the loops end
+    if (millis() - songStartTime > 112)
+    {
+      loopVal = 0;
+      t_loopVal = 0;
+    }
 
   }
 
@@ -277,8 +288,10 @@ void loop() {
   {
     // Default state for the lights
     //fill_solid( leds, NUM_LEDS, CRGB(50, 0, 200));
-    runLights(9, 5, 4);
-    //Serial.println(0);
+
+    bpm();
+    FastLED.show();
+    FastLED.delay(100);
   }
 
 
@@ -298,16 +311,16 @@ void runLoops()
     loopCount++;//add to the loop count
 
     //if the loop count excedes the array size
-    if (loopCount >= ARRAY_SIZE) 
+    if (loopCount >= ARRAY_SIZE)
     {
       loopCount = 0;
     }
-    
+
     if (loopVal == loop1)
     { // Run low Brain Activity loops
       runLights(lightArrayLow[loopCount], lightArrayMid[loopCount], lightArrayHigh[loopCount]);
-      //          runLights_sCircle(lightArrayLow[loopCount]*1.3, lightArrayMid[loopCount]*1.3, lightArrayHigh[loopCount]*1.3);
-      //          runLights_lCircle(lightArrayLow[loopCount]*2, lightArrayMid[loopCount]*2, lightArrayHigh[loopCount]*2);
+      runLights_sCircle(lightArrayLow[loopCount] * 1.3, lightArrayMid[loopCount] * 1.3, lightArrayHigh[loopCount] * 1.3);
+      runLights_lCircle(lightArrayLow[loopCount] * 2, lightArrayMid[loopCount] * 2, lightArrayHigh[loopCount] * 2);
 
 
     }
@@ -315,8 +328,8 @@ void runLoops()
     else if (loopVal == loop2)
     { // Run Mid Brain Activity loops
       runLights(mediumArrayLow[loopCount], mediumArrayLow[loopCount], mediumArrayLow[loopCount]);
-      //          runLights_sCircle(mediumArrayLow[loopCount]*1.3, mediumArrayLow[loopCount]*1.3, mediumArrayLow[loopCount]*1.3);
-      //          runLights_lCircle(mediumArrayLow[loopCount]*2, mediumArrayLow[loopCount]*2, mediumArrayLow[loopCount]*2);
+      runLights_sCircle(mediumArrayLow[loopCount] * 1.3, mediumArrayLow[loopCount] * 1.3, mediumArrayLow[loopCount] * 1.3);
+      runLights_lCircle(mediumArrayLow[loopCount] * 2, mediumArrayLow[loopCount] * 2, mediumArrayLow[loopCount] * 2);
 
 
     }
@@ -324,8 +337,8 @@ void runLoops()
     else if (loopVal == loop3)
     { // Run High Brain Activity loops
       runLights(fullArrayLow[loopCount], fullArrayLow[loopCount], fullArrayLow[loopCount]);
-      //          runLights_sCircle(fullArrayLow[loopCount]*1.3, fullArrayLow[loopCount]*1.3, fullArrayLow[loopCount]*1.3);
-      //          runLights_lCircle(fullArrayLow[loopCount]*2, fullArrayLow[loopCount]*2, fullArrayLow[loopCount]*2);
+      runLights_sCircle(fullArrayLow[loopCount] * 1.3, fullArrayLow[loopCount] * 1.3, fullArrayLow[loopCount] * 1.3);
+      runLights_lCircle(fullArrayLow[loopCount] * 2, fullArrayLow[loopCount] * 2, fullArrayLow[loopCount] * 2);
     }
 
   }
@@ -338,75 +351,89 @@ void bpm()
   uint8_t BeatsPerMinute = 72;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8( BeatsPerMinute, 100, 255);
-  for ( int i = 0; i < NUM_LEDS; i++) 
-  { 
-    //9948
-  
+  for ( int i = 0; i < NUM_LEDS; i++)
+  {
+
     leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
   }
-}
-  void runLights(int ArrayLow, int ArrayMid, int ArrayHigh)
+  
+  for ( int i = 0; i < NUM_LEDS_LARGE_CIRCLE; i++)
   {
-    FastLED.clear();
-    for (int i = 0; i < ArrayLow + 1; i++)
-    {
-      leds[i] = CRGB::Red;
 
-    }
-    for (int i = ArrayLow; i < ArrayMid + ArrayLow + 1; i++)
-    {
-      leds[i] = CRGB::Green;
+    leds_lcircle[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+  }
+  for ( int i = 0; i < NUM_LEDS_SMALL_CIRCLE; i++)
+  {
 
-    }
-    for (int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
-    {
-      leds[i] = CRGB::Blue;
+    leds_scircle[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+  }
+}
 
-    }
-    FastLED.show(); // show the current state of LED
-    FastLED.delay(20); // delay 20 ms
+
+
+
+void runLights(int ArrayLow, int ArrayMid, int ArrayHigh)
+{
+  FastLED.clear();
+  for (int i = 0; i < ArrayLow + 1; i++)
+  {
+    leds[i] = CRGB::Red;
+  }
+  for (int i = ArrayLow; i < ArrayMid + ArrayLow + 1; i++)
+  {
+    leds[i] = CRGB::Green;
+
+  }
+  for (int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
+  {
+    leds[i] = CRGB::Blue;
 
   }
 
-  //void runLights_sCircle(int ArrayLow, int ArrayMid,int ArrayHigh)
-  //{
-  //  for (int i =0; i < ArrayLow + 1; i++)
-  //    {
-  //       leds_scircle[i] = CRGB::Red;
-  //
-  //    }
-  //   for(int i = ArrayLow; i < ArrayMid + ArrayLow+1; i++)
-  //   {
-  //      leds_scircle[i] = CRGB::Green;
-  //
-  //   }
-  //    for(int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
-  //   {
-  //      leds_scircle[i] = CRGB::Blue;
-  //
-  //   }
-  //
-  //
-  //}
-  //
-  //void runLights_lCircle(int ArrayLow, int ArrayMid,int ArrayHigh)
-  //{
-  //  for (int i =0; i < ArrayLow + 1; i++)
-  //    {
-  //       leds_lcircle[i] = CRGB::Red;
-  //
-  //    }
-  //   for(int i = ArrayLow; i < ArrayMid + ArrayLow+1; i++)
-  //   {
-  //      leds_lcircle[i] = CRGB::Green;
-  //
-  //   }
-  //    for(int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
-  //   {
-  //      leds_lcircle[i] = CRGB::Blue;
-  //
-  //   }
-  //
-  //
-  //}
+  FastLED.show(); // show the current state of LED
+  FastLED.delay(20); // delay 20 ms
+
+}
+
+void runLights_sCircle(int ArrayLow, int ArrayMid, int ArrayHigh)
+{
+  for (int i = 0; i < ArrayLow + 1; i++)
+  {
+    leds_scircle[i] = CRGB::Red;
+
+  }
+  for (int i = ArrayLow; i < ArrayMid + ArrayLow + 1; i++)
+  {
+    leds_scircle[i] = CRGB::Green;
+
+  }
+  for (int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
+  {
+    leds_scircle[i] = CRGB::Blue;
+
+  }
+
+
+}
+
+void runLights_lCircle(int ArrayLow, int ArrayMid,int ArrayHigh)
+{
+  for (int i =0; i < ArrayLow + 1; i++)
+    {
+       leds_lcircle[i] = CRGB::Red;
+
+    }
+   for(int i = ArrayLow; i < ArrayMid + ArrayLow+1; i++)
+   {
+      leds_lcircle[i] = CRGB::Green;
+
+   }
+    for(int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow + 1; i++)
+   {
+      leds_lcircle[i] = CRGB::Blue;
+
+   }
+
+
+}
 
