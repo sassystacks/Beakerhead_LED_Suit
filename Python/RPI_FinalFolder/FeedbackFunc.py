@@ -79,7 +79,7 @@ def readingsFunc(timeAtReceive=None):
             while time.time() - timeAtReceive < 93:
                 time.sleep(0.5)
 
-        while time.time() - timeAtReceive < 167:
+        while time.time() - timeAtReceive < 116:
 
             """ 3.1 ACQUIRE DATA """
             # Obtain EEG data from the LSL stream
