@@ -36,7 +36,8 @@ const int RF_PIN = 2;
 #define BRIGHTNESS        50
 
 #define LED_TYPE           WS2812B // Type of LED
-#define COLOR_ORDER GRB //order the colors so they match the docs
+
+#define COLOR_ORDER GRB  //order the colors so they match the docs
 
 //Change the number of LEDs here according to how many you have
 #define NUM_LEDS          6
@@ -178,30 +179,40 @@ void setup() {
 
 }
 
-int loopVal = 1; // this is the value that determines if there is a loop to play
-int chkVal = 0; // check if value changed on transmitter
-int t_loopVal = 0; // this value is checked against loopVal to see if the brain waves have changed state
+// loopVal is the value that determines if there is a loop to play
+// loopVal = 0 - stand by light when music not playing
+// loopVal = 1 - low brainwave activity
+// loopVal = 2 - medium brainwave activity
+// loopVal = 3 - high brainwave activity
+// loopVal = 4 - beat the lights in time with music, but no correlation to music
+int loopVal = 3;
 
 // loop numbers to run
 const int loop1 = 1;
 const int loop2 = 2;
 const int loop3 = 3;
 
-// Scaling factor for lights and loops
-float scaleStrips = 1 / 3;
-float scaleSmallCircle = 1.3;
-float scaleLargeCircle = 2.5;
-
 //convert beats per minute to samples per bar
 const int SAMPLES_PER_BAR = (4 * 60) / (72 * .02);
 
 //void runLights(int lightArrayLow[],int lightArrayMid[],int lightArrayHigh[])
-
 uint8_t gHue = 0;
 
+// ~~~~~~~~~~~~~~~~ Colors ~~~~~~~~~~~~~~~~~~~~~~~
+// Background color when song is inactive
+CHSV backgroundColor = CHSV(190, 150, 150);
+
+// lows
+CHSV lowsColor = CHSV(150,255,255);
+
+ //mids
+ CHSV midsColor = CHSV(100,210,255);
+
+ //highs
+ CHSV highsColor = CHSV(80,200,255);
+ 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop() {
-
-
 
   // Check if there is data on the Receiver
   if (mySwitch.available())
@@ -212,61 +223,79 @@ void loop() {
     }
     int receivedData = mySwitch.getReceivedValue(); // define loopVal as the value on the receiver pin
 
-    if (receivedData == 4)
+    // This means the song has started if (4) or brainwave has stopped (6)
+    if (receivedData == 4 || receivedData == 6)
     {
-      unsigned long init_time = millis(); //Get the time right now
-      unsigned long currentime = millis();
-      while (currentime - init_time < 90000)
-      {
-        //
-        bpm();
-      }
+      loopVal = 4; // set lights to beat with music
     }
 
-    if ((receivedData == loop1 || receivedData == loop2 || receivedData == loop3))
+    else if (receivedData != loopVal) // this if brainwave activity has changed
     {
+      // start the new loop count to zero since brainwave activity has changed
+      loopCount = 0;
 
       //set the the loop to either low mid or high brainwave value
       loopVal = receivedData;
 
-      for (int i = 0; i < 4; i++)
-      {
-        runLoops();
-
-        if (mySwitch.available() && i == 1)
-        {
-          t_loopVal = mySwitch.getReceivedValue();
-          chkVal = 1;
-        }
-
-      }
-      if (chkVal)
-      {
-        loopVal = t_loopVal;
-        chkVal = 0;
-      }
-
-
-
-
     }
-    //
-    //    Serial.print("brain state is: ");
-    //    Serial.println(loopVal);
+
     mySwitch.resetAvailable(); // reset the receiver pin
 
   }
 
+  if (loopVal > 0 && loopVal < 4)
+  {
+    for (int i = 0; i < SAMPLES_PER_BAR; i++)
+    {
 
-  else if (loopVal) {
+      // This runs the lights for 6 (lights), 28 (smallcircle) and 45 (large circle) for the element at the
+      // point in the array defined by loopCount.
+      // Set the lights to the values from the arrays that are built from the music
 
-    runLoops(); // run loops
+      if (loopVal == loop1) // low brain activity
+      {
+        runLights(lightArrayLow[loopCount], lightArrayMid[loopCount] , lightArrayHigh[loopCount] );
+        runLights_sCircle(lightArrayLow[loopCount], lightArrayMid[loopCount] , lightArrayHigh[loopCount] );
+        runLights_lCircle(lightArrayLow[loopCount], lightArrayMid[loopCount] , lightArrayHigh[loopCount] );
+      }
+      else if (loopVal == loop2) // medium brain activity
+      {
+        runLights(mediumArrayLow[loopCount], mediumArrayMid[loopCount] , mediumArrayHigh[loopCount] );
+        runLights_sCircle(mediumArrayLow[loopCount], mediumArrayMid[loopCount] , mediumArrayHigh[loopCount] );
+        runLights_lCircle(mediumArrayLow[loopCount], mediumArrayMid[loopCount] , mediumArrayHigh[loopCount] );
+      }
+      else // High brain activity
+      {
+        runLights(fullArrayLow[loopCount], fullArrayMid[loopCount] , fullArrayHigh[loopCount] );
+        runLights_sCircle(fullArrayLow[loopCount], fullArrayMid[loopCount] , fullArrayHigh[loopCount] );
+        runLights_lCircle(fullArrayLow[loopCount], fullArrayMid[loopCount] , fullArrayHigh[loopCount] );
+      }
+      FastLED.show();
+      FastLED.delay(200);
+
+      loopCount++; // increment the loop count to keep going through the lights
+
+      //if the loop count excedes the array size
+      if (loopCount >= ARRAY_SIZE)
+      {
+        loopCount = 0;
+      }
+    }
   }
 
-  else
+  else if (loopVal == 4)
   {
     //Beat at the same beats per minute as the song
     bpm();
+  }
+  else
+  {
+
+    fill_solid(leds, NUM_LEDS, backgroundColor);
+    fill_solid(leds_scircle, NUM_LEDS_SMALL_CIRCLE, backgroundColor);
+    fill_solid(leds_lcircle, NUM_LEDS_LARGE_CIRCLE, backgroundColor);
+    FastLED.show();
+    FastLED.delay(100);
   }
 
 }
@@ -275,61 +304,7 @@ void loop() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~           Functions               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void runLoops()
-{
 
-  //FastLED.clear(); // show the current state of LED
-
-  //Run for loop for the next samples per bar
-  for (int i = 0; i < SAMPLES_PER_BAR / 4; i++)
-  {
-    // First, clear the existing led values
-
-    loopCount++;//add to the loop count
-
-    //if the loop count excedes the array size
-    if (loopCount >= ARRAY_SIZE)
-    {
-      loopCount = 0;
-    }
-
-    if (loopVal == loop1)
-    { // Run low Brain Activity loops
-
-
-      //runLights((int)ceil(lightArrayLow[loopCount] / 3), (int)ceil(lightArrayMid[loopCount] / 3), (int)ceil(lightArrayHigh[loopCount] / 3));
-      //      runLights_sCircle((int)ceil(lightArrayLow[loopCount] * 1.3), (int)ceil(lightArrayLow[loopCount] * 1.3), (int)ceil(lightArrayLow[loopCount] * 1.3));
-      //     // runLights_lCircle( (int)ceil(lightArrayLow[loopCount] * 2.1), (int)ceil(lightArrayLow[loopCount] * 2.1),  (int)ceil(lightArrayLow[loopCount] * 2.1) );
-      //      runLights_lCircle( lightArrayLow[loopCount] * 2, lightArrayLow[loopCount] *2,  lightArrayLow[loopCount] * 2 );
-
-      runLights(lightArrayLow[loopCount], lightArrayMid[loopCount] , lightArrayHigh[loopCount], scaleStrips);
-      runLights_sCircle(lightArrayLow[loopCount] , lightArrayLow[loopCount] , lightArrayLow[loopCount], scaleSmallCircle);
-      runLights_lCircle( lightArrayLow[loopCount] , lightArrayLow[loopCount] ,  lightArrayLow[loopCount], scaleLargeCircle);
-      FastLED.show(); // show the current state of LED
-      FastLED.delay(100); // delay 20 ms
-
-
-    }
-
-    //    else if (loopVal == loop2)
-    //    { // Run Mid Brain Activity loops
-    //      //runLights(mediumArrayLow[loopCount], mediumArrayLow[loopCount], mediumArrayLow[loopCount]);
-    ////      runLights_sCircle(mediumArrayLow[loopCount] * 1.3, mediumArrayLow[loopCount] * 1.3, mediumArrayLow[loopCount] * 1.3);
-    ////      runLights_lCircle(mediumArrayLow[loopCount] * 2, mediumArrayLow[loopCount] * 2, mediumArrayLow[loopCount] * 2);
-    //
-    //
-    //    }
-    //
-    //  else if (loopVal == loop3)
-    //    { // Run High Brain Activity loops
-    //      runLights(fullArrayLow[loopCount], fullArrayLow[loopCount], fullArrayLow[loopCount]);
-    //
-    //    }
-
-  }
-
-
-}
 void bpm()
 {
   FastLED.clear();
@@ -350,47 +325,48 @@ void bpm()
 
     leds_scircle[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
   }
-  //  for ( int i = 0; i < NUM_LEDS_LARGE_CIRCLE; i++)
-  //  {
-  //
-  //    leds_lcircle[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-  //  }
+  for ( int i = 0; i < NUM_LEDS_LARGE_CIRCLE; i++)
+  {
+
+    leds_lcircle[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+  }
   FastLED.show();
   FastLED.delay(100);
 }
 
-void runLights(int ArrayLow, int ArrayMid, int ArrayHigh, float scaleFactor)
+void runLights(int ArrayLow, int ArrayMid, int ArrayHigh)
 {
 
-  int scaledLow = (int)(ceil)(ArrayLow  * scaleFactor);
-  int scaledMid = (int)(ceil)(ArrayMid *  scaleFactor);
-  int scaledHigh = (int)(ceil)(ArrayHigh * scaleFactor);
+  int scaledLow = (int)(round)(ArrayLow / 3);
+  int scaledMid = (int)(round)(ArrayMid / 3);
+  int scaledHigh = (int)(round)(ArrayHigh / 3);
 
   for (int i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] =  CHSV(192, 100, 70);
+    leds[i] = CHSV(192, 100, 70);
   }
 
-  for (int i = 0; i <  scaledLow + 1; i++)
+  for (int i = 0; i <  scaledLow ; i++) // lows
   {
-    leds[i] = CHSV(10, 200, 220); //make these red
+    leds[i] = midsColor; 
 
   }
-  for (int i = scaledLow + 1; i < scaledLow + scaledMid + 2; i++)
+  for (int i = scaledLow ; i < scaledLow + scaledMid; i++)
   {
-    leds[i] = CHSV(90, 200, 200); // make these green
+    leds[i] = midsColor; //
 
   }
-  for (int i = scaledLow + scaledMid + 2; i < scaledLow + scaledMid + scaledHigh + 3; i++)
+  for (int i = scaledLow + scaledMid; i < scaledLow + scaledMid + scaledHigh; i++)
   {
-    leds[i] = CHSV(160, 200, 200); // make these blue
+    leds[i] = highsColor; // make these blue
   }
 
 }
 
-void runLights_sCircle(int ArrayLow, int ArrayMid, int ArrayHigh, float scaleFactor)
+void runLights_sCircle(int ArrayLow, int ArrayMid, int ArrayHigh)
 {
 
+  float scaleFactor = 1.3;
   int scaledLow = (int)(ceil)(ArrayLow * scaleFactor);
   int scaledMid = (int)(ceil)(ArrayMid * scaleFactor);
   int scaledHigh = (int)(ceil)(ArrayHigh * scaleFactor);
@@ -400,25 +376,26 @@ void runLights_sCircle(int ArrayLow, int ArrayMid, int ArrayHigh, float scaleFac
     leds_scircle[i] =  CHSV(192, 100, 70);
   }
 
-  for (int i = 0; i < scaledLow + 1; i++)
+  for (int i = 0; i < scaledLow; i++)
   {
-    leds_scircle[i] = CHSV(90, 200, 220); //make these red
+    leds_scircle[i] = lowsColor; // lows
   }
 
-  for (int i = scaledLow + 1; i < scaledMid + scaledLow + 2; i++)
+  for (int i = scaledLow; i < scaledMid + scaledLow; i++)
   {
-    leds_scircle[i] = CHSV(10, 200, 200); // make these green
+    leds_scircle[i] = midsColor; // mids
   }
 
-  for (int i = scaledMid + scaledLow + 2; i < scaledHigh + scaledMid + scaledLow + 3; i++)
+  for (int i = scaledMid + scaledLow ; i < scaledHigh + scaledMid + scaledLow; i++)
   {
-    leds_scircle[i] = CHSV(160, 200, 200); // make these blue
+    leds_scircle[i] = highsColor; // highs
   }
 }
 
-void runLights_lCircle(int ArrayLow, int ArrayMid, int ArrayHigh, float scaleFactor)
+void runLights_lCircle(int ArrayLow, int ArrayMid, int ArrayHigh)
 {
 
+  float scaleFactor = 2.5;
   int scaledLow = (int)(ceil)(ArrayLow * scaleFactor);
   int scaledMid = (int)(ceil)(ArrayMid * scaleFactor);
   int scaledHigh = (int)(ceil)(ArrayHigh * scaleFactor);
@@ -428,18 +405,18 @@ void runLights_lCircle(int ArrayLow, int ArrayMid, int ArrayHigh, float scaleFac
     leds_lcircle[i] =  CHSV(192, 100, 70);
   }
 
-  for (int i = 0; i < scaledLow + 1; i++)
+  for (int i = 0; i < scaledLow; i++)
   {
-    leds_lcircle[i] = CHSV(90, 200, 220); //make these red
+    leds_lcircle[i] = lowsColor; // lows
   }
 
-  for (int i = scaledLow + 1; i < scaledMid + scaledLow + 2; i++)
+  for (int i = scaledLow; i < scaledMid + scaledLow; i++)
   {
-    leds_lcircle[i] = CHSV(10, 200, 200); // make these green
+    leds_lcircle[i] = midsColor; //mids
   }
 
-  for (int i = scaledMid + scaledLow + 2; i < scaledHigh + scaledMid + scaledLow + 3; i++)
+  for (int i = scaledMid + scaledLow; i < scaledHigh + scaledMid + scaledLow ; i++)
   {
-    leds_lcircle[i] = CHSV(160, 200, 200); // make these blue
+    leds_lcircle[i] = highsColor; //highs
   }
 }

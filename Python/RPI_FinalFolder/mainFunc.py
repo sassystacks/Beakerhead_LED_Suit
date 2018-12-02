@@ -46,3 +46,4 @@ if muses:
 stream(addrs, (startSongTime))
 
 # End song maybe a timer?
+os.system('python3 ~/MyProjects/Beakerhead/rpi-rf/scripts/rpi-rf_send 7')

@@ -71,6 +71,9 @@ void setup() {
 
 }
 
+// Background color when song is inactive
+CHSV backgroundColor = CHSV(190, 150, 150);
+
 uint16_t lightIntensityLow; //initialize light intensity
 uint16_t lightIntensityMid; //initialize light intensity
 uint16_t lightIntensityHigh; //initialize light intensity
@@ -85,6 +88,7 @@ int play_music = 0;
 
 const int SAMPLING_RATE = 20;
 unsigned int start_time = 0;
+
 void loop() {
 
   //Check if there is a signal on the wire
@@ -95,7 +99,8 @@ void loop() {
   
     int receivedData = mySwitch.getReceivedValue(); // define loopVal as the value on the receiver pin
 
-    if (receivedData == music_play) {
+    if (receivedData == music_play) 
+    {
       play_music = 1;
       start_time = millis();
       
@@ -137,39 +142,25 @@ void loop() {
 
           
           
-          current_time = millis();
-          
-          while(current_time - previous_time <= SAMPLING_RATE)
-          {
-            current_time = millis();
-          }
-          
-          previous_time = millis();
-          
-          runLights(lightIntensityLow* 2, lightIntensityMid*2, lightIntensityHigh*2);
-          
-
-          
-          //Set lights to intensities
-          
-            
-
-          //
-//                    Serial.print("low intensity is: ");
-//                    Serial.print(lightIntensityLow);
-//                    Serial.print("        ");
-//                    Serial.print("Mid intensity is: ");
-//                    Serial.print(lightIntensityMid);
-//                    Serial.print("        ");
-//                    Serial.print("High intensity is: ");
-//                    Serial.println(lightIntensityHigh);
-//                    Serial.flush();
- 
-        }
+//          current_time = millis();
+//          
+//          while(current_time - previous_time <= SAMPLING_RATE)
+//          {
+//            current_time = millis();
+//          }
+//          
+//          previous_time = millis();
+//          
+//          runLights(lightIntensityLow, lightIntensityMid, lightIntensityHigh);
+// 
+//        }
         
         loopCount ++;
-        if (loopCount > 11050)
+        if (loopCount > 11050)// Song is completed
         {
+
+          // Set lights back to default
+          play_music = 0;
           break;
         }
       }
@@ -183,13 +174,16 @@ void loop() {
     }
 
   }
+  }
   else
   {
     // Default state for the lights
-    runLights(9, 5, 4);
+    //runLights(9, 5, 4);
     //Serial.println("No data received yet");
+    fill_solid(leds, NUM_LEDS, backgroundColor);
 
-
+     FastLED.show();
+     FastLED.delay(100);
   }
 
 }
@@ -220,11 +214,13 @@ int csvReadText(File* file, char* str, size_t size, char delim)
   size_t n = 0;
   while (true) {
     // check for EOF
-    if (!file->available()) {
+    if (!file->available()) 
+    {
       rtn = 0;
       break;
     }
-    if (file->read(&ch, 1) != 1) {
+    if (file->read(&ch, 1) != 1) 
+    {
       // read error
       rtn = -1;
       break;
@@ -281,22 +277,29 @@ void runLights(uint16_t ArrayLow, uint16_t ArrayMid, uint16_t ArrayHigh)
 {
   // First, clear the existing led values
   FastLED.clear();
-  for (int i = 0; i < ArrayLow ; i++)
+ for (int i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = CRGB::Red;
+    leds[i] =  CHSV(192, 100, 70);
   }
-  for (int i = ArrayLow ; i < ArrayMid + ArrayLow; i++)
+
+  for (int i = 0; i <  ArrayLow ; i++)
   {
-    leds[i] = CRGB::Green;
+    leds[i] = CHSV(90, 200, 220); //make these red
+
   }
-  for (int i = ArrayMid + ArrayLow; i < ArrayHigh + ArrayMid + ArrayLow; i++)
+  for (int i = ArrayLow ; i < ArrayLow + ArrayMid; i++)
   {
-    leds[i] = CRGB::Blue;
+    leds[i] = CHSV(10, 200, 200); // make these green
+
   }
+  for (int i = ArrayLow + ArrayMid; i < ArrayLow + ArrayMid + ArrayHigh; i++)
+  {
+    leds[i] = CHSV(160, 200, 200); // make these blue
+  }
+  
   //Show light values
   FastLED.show();
-
-  //delay for 20ms to show the lights
-  delay(11);
+  FastLED.delay(20);
+  
 
 }
