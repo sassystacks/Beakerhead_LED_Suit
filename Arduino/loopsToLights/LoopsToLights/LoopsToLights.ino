@@ -271,7 +271,7 @@ void loop() {
         runLights_lCircle(fullArrayLow[loopCount], fullArrayMid[loopCount] , fullArrayHigh[loopCount] );
       }
       FastLED.show();
-      FastLED.delay(200);
+      FastLED.delay(20);
 
       loopCount++; // increment the loop count to keep going through the lights
 
