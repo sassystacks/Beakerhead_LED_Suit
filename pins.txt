@@ -1,0 +1,18 @@
+Pin connection for SD card board:
+
+Teensy		SD Card
+pin 10 -------> CS
+pin 11 -------> DI
+pin 12 -------> DO
+pin 13 -------> CLK
+5v -----------> 5V
+Grnd ---------> Grnd
+
+RF connection:
+pin 2 --------> data
+
+pin Connection for Loop Lights:
+
+pin 4 --------> small circle
+pin 5 --------> large circle
+pin 6 --------> led strips
